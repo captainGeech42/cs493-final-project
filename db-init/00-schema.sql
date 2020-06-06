@@ -4,7 +4,7 @@ CREATE TABLE users
   name varchar(255) NOT NULL,
   email varchar(255) NOT NULL,
   password varchar(255) NOT NULL,
-  role varchar(255) NOT NULL,
+  `role` varchar(255) NOT NULL,
   PRIMARY KEY (id)
 );
 
@@ -12,7 +12,7 @@ CREATE TABLE courses
 (
   id INT NOT NULL AUTO_INCREMENT,
   subject varchar(255) NOT NULL,
-  number INT NOT NULL,
+  `number` INT NOT NULL,
   title varchar(255) NOT NULL,
   term varchar(255) NOT NULL,
   instructorId INT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE submissions
   assignmentId INT NOT NULL,
   studentId INT NOT NULL,
   submittedTime varchar(255) NOT NULL,
-  file varchar(255) NOT NULL, -- this will need to be a BLOB or something
+  `file` varchar(255) NOT NULL, -- this will need to be a BLOB or something
   PRIMARY KEY (id),
   CONSTRAINT `submissions_ibfk_1` FOREIGN KEY (assignmentId) REFERENCES assignments(id) ON DELETE CASCADE,
   FOREIGN KEY (studentId) REFERENCES users(id),

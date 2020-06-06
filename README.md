@@ -14,3 +14,14 @@ $ docker-compose up
 ```
 
 API will be listening on port 8000 by default
+
+Pre-made accounts:
+* Admin (id=1)
+  * Email: `admin@school.dev`
+  * Password: `admin123`
+* Instructor (id=2)
+  * Email: `instructor@school.dev`
+  * Password: `instructor123`
+* Student (id=3)
+  * Email: `student@school.dev`
+  * Password: `student123`

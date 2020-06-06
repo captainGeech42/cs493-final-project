@@ -31,3 +31,5 @@ router.get("/:id/submissions", async (req, res, next) => {
 router.post("/:id/submissions", async (req, res, next) => {
 
 });
+
+module.exports = router;

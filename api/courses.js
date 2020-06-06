@@ -46,3 +46,5 @@ router.get("/:id/roster", async (req, res, next) => {
 router.get("/:id/assignments", async (req, res, next) => {
 
 });
+
+module.exports = router;
