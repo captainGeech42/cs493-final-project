@@ -1,6 +1,7 @@
 // Routes for /users
 
 const router = require("express").Router();
+const bcrypt = require("bcryptjs");
 
 const { UserSchema, UserLoginSchema, insertNewUser, getUserByEmail, getUserByID } = require("../models/user");
 
@@ -61,9 +62,8 @@ router.post("/", async (req, res) => {
 router.post("/login", async (req, res) => {
     try {
         if (validateAgainstSchema(req.body, UserLoginSchema)) {
-            console.log("req:", req.body);
             const user = await getUserByEmail(req.body.email);
-            console.log("user:", user);
+
             if (user && bcrypt.compare(req.body.password, user.password)) {
                 // creds are valid, send JWT
                 const token = generateAuthToken(user.id, user.role);
@@ -92,10 +92,11 @@ router.post("/login", async (req, res) => {
 // Fetch data about a specific User
 router.get("/:id", requireAuthentication, async (req, res, next) => {
     try {
-        if (req.params.id !== req.user) {
+        if (req.params.id != req.user) {
             res.status(403).send({
                 error: "Unauthorized access to requested resource"
             });
+            return;
         }
 
         const user = await getUserByID(req.params.id, false);
