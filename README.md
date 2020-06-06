@@ -6,3 +6,11 @@ Group Members:
 * Alexander Nead-Work
 * Cameron Grein
 * Tristan Jong
+
+## How to Start Application
+```
+$ docker-compose build
+$ docker-compose up
+```
+
+API will be listening on port 8000 by default
