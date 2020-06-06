@@ -1,0 +1,36 @@
+version: '3.7'
+services:
+  api:
+    build: .
+    image: tarpaulin-api
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+
+  mysql:
+    image: mysql:latest
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./db-init/:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  
+  redis:
+    image: redis:latest
+    restart: always
+
+volumes:
+  mysql-data:
+    name: tarpaulin-mysql-data
