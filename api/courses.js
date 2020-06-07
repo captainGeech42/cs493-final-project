@@ -1,5 +1,14 @@
 // Routes for /courses
+const bcrypt = require("bcryptjs");
 
+const { CourseSchema,
+      deleteCourseById,
+      getStudentsByCourseid,
+      getStudentsIdByCourseId,
+      getInstructorIdByCourseId} = require("../models/course");
+
+const { validateAgainstSchema } = require("../lib/validation");
+const { generateAuthToken, requireAuthentication, parseAuthToken } = require("../lib/auth");
 const router = require("express").Router();
 
 // Fetch the list of all Courses
@@ -23,7 +32,28 @@ router.patch("/:id", async (req, res, next) => {
 });
 
 // Remove a specific Course from the database
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", requireAuthentication, async (req, res, next) => {
+  if (req.role == "admin"){
+    try {
+      const success = await deleteCourseById(paresInt(req.params.id));
+      if (success) {
+        res.status(204).end();
+      } else {
+        res.status(404).send({
+          error: "Course not found"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to delete course"
+      });
+    }
+  } else {
+    res.send(403).send({
+      error: "Unauthorized to delete course"
+    });
+  }
 
 });
 
