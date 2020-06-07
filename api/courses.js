@@ -5,7 +5,9 @@ const { CourseSchema,
       deleteCourseById,
       getStudentsByCourseid,
       getStudentsIdByCourseId,
-      getInstructorIdByCourseId} = require("../models/course");
+      getInstructorIdByCourseId,
+      updateEnrollmentById,
+      updateUnenrollmentById} = require("../models/course");
 
 const { validateAgainstSchema } = require("../lib/validation");
 const { generateAuthToken, requireAuthentication, parseAuthToken } = require("../lib/auth");
@@ -35,7 +37,7 @@ router.patch("/:id", async (req, res, next) => {
 router.delete("/:id", requireAuthentication, async (req, res, next) => {
   if (req.role == "admin"){
     try {
-      const success = await deleteCourseById(paresInt(req.params.id));
+      const success = await deleteCourseById(parseInt(req.params.id));
       if (success) {
         res.status(204).end();
       } else {
@@ -50,7 +52,7 @@ router.delete("/:id", requireAuthentication, async (req, res, next) => {
       });
     }
   } else {
-    res.send(403).send({
+    res.status(403).send({
       error: "Unauthorized to delete course"
     });
   }
@@ -58,13 +60,114 @@ router.delete("/:id", requireAuthentication, async (req, res, next) => {
 });
 
 // Fetch a list of the students enrolled in the Course
-router.get("/:id/students", async (req, res, next) => {
-
+router.get("/:id/students", requireAuthentication, async (req, res, next) => {
+  if (req.role == "admin"){
+    try {
+      const success = await getStudentsIdByCourseId(parseInt(req.params.id));
+      if (success) {
+        res.status(200).send({
+          students: success
+        });
+      } else {
+        res.status(404).send({
+          error: "Course not found"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to fetch list of students for this course"
+      });
+    }
+  } else if (req.role == "instructor") {
+    const instructorId = getInstructorIdByCourseId(id);
+    console.log(instructorId);
+    if (req.user == instructorId) {
+      try {
+        const success = await getStudentsIdByCourseId(parseInt(req.params.id));
+        if (success) {
+          res.status(200).send({
+            students: success
+          });
+        } else {
+          res.status(404).send({
+            error: "Course not found"
+          });
+        }
+      } catch (err) {
+        console.log(err);
+        res.status(500).send({
+          error: "Unable to fetch list of students for this course"
+        });
+      }
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to fetch list for this course"
+      });
+    }
+  } else {
+    res.status(403).send({
+      error: "Unauthorized to fetch list for this course"
+    });
+  }
 });
 
 // Update enrollment for a Course
-router.post("/:id/students", async (req, res, next) => {
-
+router.post("/:id/students", requireAuthentication, async (req, res, next) => {
+  const add = req.body.add;
+  const remove = req.body.remove;
+  console.log(req.role);
+  if (req.role == "admin"){
+    try {
+      const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
+      const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
+      if ( insertSuccess && deleteSuccess) {
+        res.status(200).send({
+          success: "Successfule Enrollment/Unenrollment"
+        });
+      } else {
+        res.status(404).send({
+          error: "Course not found"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to add/delete students for this course"
+      });
+    }
+  } else if (req.role == "instructor") {
+    const instructorId = getInstructorIdByCourseId(id);
+    console.log(instructorId);
+    if (req.user == instructorId) {
+      try {
+        const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
+        const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
+        if ( insertSuccess && deleteSuccess) {
+          res.status(200).send({
+            success: "Successfule Enrollment/Unenrollment"
+          });
+        } else {
+          res.status(404).send({
+            error: "Course not found"
+          });
+        }
+      } catch (err) {
+        console.log(err);
+        res.status(500).send({
+          error: "Unable to fetch list of students for this course"
+        });
+      }
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to fetch list for this course"
+      });
+    }
+  } else {
+    res.status(403).send({
+      error: "Unauthorized to fetch list for this course"
+    });
+  }
 });
 
 // Fetch a CSV file containing list of the students enrolled in the Course

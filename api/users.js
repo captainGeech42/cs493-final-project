@@ -13,7 +13,7 @@ router.post("/", async (req, res) => {
     try {
         if (validateAgainstSchema(req.body, UserSchema)) {
             // make sure role is valid
-            if (["admin", "instructor", "student"].includes(req.body.role)) {
+            if (!["admin", "instructor", "student"].includes(req.body.role)) {
                 res.status(400).send({
                     error: "Invalid role specified"
                 });
