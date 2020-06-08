@@ -27,21 +27,12 @@ exports.deleteCourseById = async function(id) {
   );
     return results;
 }
-
-exports.getStudentsByCourseid = async function(id) {
-  const list = await getStudentsIdByCourseId(id);
-  idList = list.studentId;
-  console.log(studentId)
-  const studentList = new Array();
-  var i;
-  for (i = 0; i < idList.length; i++){ // method to get info on each student
-    const [ result ] = await mysqlPool.query(
-      "SELECT id, name, email FROM `users` WHERE `id` = ?",
-      [idList[i]]
-    );
-    studentList.push(result);                              //work in progress still need to look at how this is formatted
-  }
-  return studentList;
+exports.getStudentsByCourseId = async function(id) {
+  const [ result ] = await mysqlPool.query(
+    "SELECT id, name, email FROM users WHERE id = ?",
+    [id]
+  );
+  return result;
 }
 exports.getInstructorIdByCourseId = async function(id) {
   const [ result ] = await mysqlPool.query(
@@ -61,7 +52,7 @@ exports.updateEnrollmentById = async function(id, add){
         "INSERT INTO student_courses (courseId, studentId) VALUES (?, ?)",
         [id, add[i]]
       );
-      results.push(result.insertId);
+      results.push(result.insertId>0);
     }
     console.log(results);
     return results;
@@ -79,11 +70,17 @@ exports.updateUnenrollmentById = async function(id, remove){
         "DELETE FROM student_courses WHERE studentId = ?",
         [remove[i]]
       );
-      results.push(result.affectedRows);
+      results.push(result.affectedRows > 0);
 
     }
     console.log(results);
     return results;
   }
-
+}
+exports.getAssignmentsByCourseId = async function(id) {
+  const [ results ] = await mysqlPool.query(
+    "SELECT id FROM assignments WHERE courseId = ?",
+    [id]
+  );
+  return results;
 }

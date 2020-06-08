@@ -3,11 +3,12 @@ const bcrypt = require("bcryptjs");
 
 const { CourseSchema,
       deleteCourseById,
-      getStudentsByCourseid,
+      getStudentsByCourseId,
       getStudentsIdByCourseId,
       getInstructorIdByCourseId,
       updateEnrollmentById,
-      updateUnenrollmentById} = require("../models/course");
+      updateUnenrollmentById,
+      getAssignmentsByCourseId} = require("../models/course");
 
 const { validateAgainstSchema } = require("../lib/validation");
 const { generateAuthToken, requireAuthentication, parseAuthToken } = require("../lib/auth");
@@ -80,9 +81,13 @@ router.get("/:id/students", requireAuthentication, async (req, res, next) => {
       });
     }
   } else if (req.role == "instructor") {
-    const instructorId = getInstructorIdByCourseId(id);
-    console.log(instructorId);
-    if (req.user == instructorId) {
+    const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+    if (!instructorId){
+      res.status(404).send({
+        error: "Course not found"
+      });
+    }
+    if (req.user == instructorId[0].instructorId) {
       try {
         const success = await getStudentsIdByCourseId(parseInt(req.params.id));
         if (success) {
@@ -137,9 +142,13 @@ router.post("/:id/students", requireAuthentication, async (req, res, next) => {
       });
     }
   } else if (req.role == "instructor") {
-    const instructorId = getInstructorIdByCourseId(id);
-    console.log(instructorId);
-    if (req.user == instructorId) {
+    const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+    if (!instructorId){
+      res.status(404).send({
+        error: "Course not found"
+      });
+    }
+    if (req.user == instructorId[0].instructorId) {
       try {
         const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
         const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
@@ -171,13 +180,97 @@ router.post("/:id/students", requireAuthentication, async (req, res, next) => {
 });
 
 // Fetch a CSV file containing list of the students enrolled in the Course
-router.get("/:id/roster", async (req, res, next) => {
-
+router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
+  if (req.role == "admin"){
+    try {
+      const ids = await getStudentsIdByCourseId(parseInt(req.params.id));
+      var csvData = "id, name, email \n";
+      var i;
+      for (i = 0; i < ids.length; i++) {
+        const student = await getStudentsByCourseId(ids[i].studentId);
+        if (i == ids.length - 1){
+          csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}`);
+        }
+        else {
+          csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}, \n`);
+        }
+      }
+      console.log(csvData);
+      if (csvData) {
+        res.status(200).send(csvData);
+      } else {
+        res.status(404).send({
+          error: "Course not found"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to fetch roster for this course"
+      });
+    }
+  } else if (req.role == "instructor") {
+    const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+      if (req.user == instructorId[0].instructorId) {
+        try {
+          const ids = await getStudentsIdByCourseId(parseInt(req.params.id));
+          var csvData = "id, name, email \n";
+          var i;
+          for (i = 0; i < ids.length; i++) {
+            const student = await getStudentsByCourseId(ids[i].studentId);
+            if (i == ids.length - 1){
+              csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}`);
+            }
+            else {
+              csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}, \n`);
+            }
+          }
+          console.log(csvData);
+          if (csvData) {
+            res.status(200).send(csvData);
+          } else {
+            res.status(404).send({
+              error: "Course not found"
+            });
+          }
+        } catch (err) {
+          console.log(err);
+          res.status(500).send({
+            error: "Unable to fetch list of students for this course"
+          });
+        }
+    } else {
+      res.status(404).send({
+        error: "Course not found"
+      });
+    }
+  } else {
+    res.status(403).send({
+      error: "Unauthorized to fetch roster for this course"
+    });
+  }
 });
 
 // Fetch a list of the Assignments for the Course
 router.get("/:id/assignments", async (req, res, next) => {
-
+  try {
+    const ids = await getAssignmentsByCourseId(parseInt(req.params.id));
+    if (ids) {
+      res.status(200).send({
+        assignments: ids
+      });
+    }
+    else {
+      res.status(404).send({
+        error: "Course not found"
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({
+      error: "Course not found"
+    });
+  }
 });
 
 module.exports = router;
