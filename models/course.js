@@ -32,14 +32,14 @@ exports.getStudentsByCourseId = async function(id) {
     "SELECT id, name, email FROM users WHERE id = ?",
     [id]
   );
-  return result;
+  return result[0];
 }
 exports.getInstructorIdByCourseId = async function(id) {
   const [ result ] = await mysqlPool.query(
     "SELECT instructorId FROM `courses` WHERE `id` = ?",
     [id]
   );
-  return result;
+  return result[0];
 }
 
 exports.updateEnrollmentById = async function(id, add){
@@ -54,7 +54,6 @@ exports.updateEnrollmentById = async function(id, add){
       );
       results.push(result.insertId>0);
     }
-    console.log(results);
     return results;
   }
 
@@ -73,7 +72,6 @@ exports.updateUnenrollmentById = async function(id, remove){
       results.push(result.affectedRows > 0);
 
     }
-    console.log(results);
     return results;
   }
 }

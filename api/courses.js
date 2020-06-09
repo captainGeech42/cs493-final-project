@@ -81,33 +81,34 @@ router.get("/:id/students", requireAuthentication, async (req, res, next) => {
       });
     }
   } else if (req.role == "instructor") {
-    const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
-    if (!instructorId){
-      res.status(404).send({
-        error: "Course not found"
-      });
-    }
-    if (req.user == instructorId[0].instructorId) {
-      try {
-        const success = await getStudentsIdByCourseId(parseInt(req.params.id));
-        if (success) {
-          res.status(200).send({
-            students: success
-          });
+    try {
+      const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+      if (typeof instructorId !== 'undefined') {
+        if (req.user == instructorId.instructorId) {
+          const success = await getStudentsIdByCourseId(parseInt(req.params.id));
+          if (success) {
+            res.status(200).send({
+              students: success
+            });
+          } else {
+            res.status(404).send({
+              error: "Course not found"
+            });
+          }
         } else {
-          res.status(404).send({
-            error: "Course not found"
+          res.status(403).send({
+            error: "Unauthorized to fetch list for this course"
           });
         }
-      } catch (err) {
-        console.log(err);
-        res.status(500).send({
-          error: "Unable to fetch list of students for this course"
+      } else {
+        res.status(403).send({
+          error: "Course not found"
         });
       }
-    } else {
-      res.status(403).send({
-        error: "Unauthorized to fetch list for this course"
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to fetch list of students for this course"
       });
     }
   } else {
@@ -126,6 +127,7 @@ router.post("/:id/students", requireAuthentication, async (req, res, next) => {
     try {
       const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
       const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
+      console.log(insertSuccess, deleteSuccess);
       if ( insertSuccess && deleteSuccess) {
         res.status(200).send({
           success: "Successfule Enrollment/Unenrollment"
@@ -142,34 +144,36 @@ router.post("/:id/students", requireAuthentication, async (req, res, next) => {
       });
     }
   } else if (req.role == "instructor") {
-    const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
-    if (!instructorId){
-      res.status(404).send({
-        error: "Course not found"
-      });
-    }
-    if (req.user == instructorId[0].instructorId) {
-      try {
-        const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
-        const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
-        if ( insertSuccess && deleteSuccess) {
-          res.status(200).send({
-            success: "Successfule Enrollment/Unenrollment"
-          });
+    try {
+      const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+      if (typeof instructorId !== 'undefined') {
+        if (req.user == instructorId.instructorId) {
+          const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
+          const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
+          console.log(insertSuccess, deleteSuccess);
+          if ( insertSuccess && deleteSuccess) {
+            res.status(200).send({
+              success: "Successfule Enrollment/Unenrollment"
+            });
+          } else {
+            res.status(404).send({
+              error: "Course not found"
+            });
+          }
         } else {
-          res.status(404).send({
-            error: "Course not found"
+          res.status(403).send({
+            error: "Unauthorized to fetch list for this course"
           });
         }
-      } catch (err) {
-        console.log(err);
-        res.status(500).send({
-          error: "Unable to fetch list of students for this course"
+      } else {
+        res.status(404).send({
+          error: "Course not found"
         });
       }
-    } else {
-      res.status(403).send({
-        error: "Unauthorized to fetch list for this course"
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to fetch list of students for this course"
       });
     }
   } else {
@@ -189,10 +193,10 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
       for (i = 0; i < ids.length; i++) {
         const student = await getStudentsByCourseId(ids[i].studentId);
         if (i == ids.length - 1){
-          csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}`);
+          csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}`);
         }
         else {
-          csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}, \n`);
+          csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}, \n`);
         }
       }
       console.log(csvData);
@@ -210,19 +214,20 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
       });
     }
   } else if (req.role == "instructor") {
-    const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
-      if (req.user == instructorId[0].instructorId) {
-        try {
+    try {
+      const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+      if (typeof instructorId !== 'undefined') {
+        if (req.user == instructorId.instructorId) {
           const ids = await getStudentsIdByCourseId(parseInt(req.params.id));
           var csvData = "id, name, email \n";
           var i;
           for (i = 0; i < ids.length; i++) {
             const student = await getStudentsByCourseId(ids[i].studentId);
             if (i == ids.length - 1){
-              csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}`);
+              csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}`);
             }
             else {
-              csvData = csvData.concat(`${student[0].id}, "${student[0].name}", ${student[0].email}, \n`);
+              csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}, \n`);
             }
           }
           console.log(csvData);
@@ -233,17 +238,22 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
               error: "Course not found"
             });
           }
-        } catch (err) {
-          console.log(err);
-          res.status(500).send({
-            error: "Unable to fetch list of students for this course"
-          });
-        }
+      } else {
+        res.status(404).send({
+          error: "Course not found"
+        });
+      }
     } else {
       res.status(404).send({
         error: "Course not found"
       });
     }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      error: "Unable to fetch list of students for this course"
+    });
+  }
   } else {
     res.status(403).send({
       error: "Unauthorized to fetch roster for this course"
