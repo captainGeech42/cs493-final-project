@@ -188,19 +188,15 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
   if (req.role == "admin"){
     try {
       const ids = await getStudentsIdByCourseId(parseInt(req.params.id));
-      var csvData = "id, name, email \n";
+      var csvData = "id, name, email \r\n";
       var i;
       for (i = 0; i < ids.length; i++) {
         const student = await getStudentsByCourseId(ids[i].studentId);
-        if (i == ids.length - 1){
-          csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}`);
-        }
-        else {
-          csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}, \n`);
-        }
+        csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}\r\n`);
       }
       console.log(csvData);
       if (csvData) {
+        res.setHeader('Content-Type', 'text/csv');
         res.status(200).send(csvData);
       } else {
         res.status(404).send({
@@ -219,19 +215,15 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
       if (typeof instructorId !== 'undefined') {
         if (req.user == instructorId.instructorId) {
           const ids = await getStudentsIdByCourseId(parseInt(req.params.id));
-          var csvData = "id, name, email \n";
+          var csvData = "id, name, email \r\n";
           var i;
           for (i = 0; i < ids.length; i++) {
             const student = await getStudentsByCourseId(ids[i].studentId);
-            if (i == ids.length - 1){
-              csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}`);
-            }
-            else {
-              csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}, \n`);
-            }
+            csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}\r\n`);
           }
           console.log(csvData);
           if (csvData) {
+            res.setHeader('Content-Type', 'text/csv');
             res.status(200).send(csvData);
           } else {
             res.status(404).send({
