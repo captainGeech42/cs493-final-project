@@ -64,15 +64,19 @@ router.get("/:id", async (req, res, next) => {
 });
 
 // Update data for a specific Course
-router.patch("/:id", requireAuthentication, async (req, res) => {
+router.patch("/:id", requireAuthentication, async (req, res, next) => {
   if (req.role == "admin") {
     try {
-      const success = await updateCourseById(parseInt(req.params.id));
-      if (success) {
-        res.status(200).send();
+      if (validateAgainstSchema(req.body, CourseSchema)) {
+        const success = await updateCourseById(parseInt(req.params.id), req.body);
+        if (success) {
+          res.status(200).send();
+        } else {
+          next();
+        }        
       } else {
-        res.status(400).send({
-          error: "The request body was invalid for updating course info, or the course could not be found"
+      res.status(403).send({
+        error: "Invalid request body"
         });
       }
     } catch (err) {
@@ -81,20 +85,25 @@ router.patch("/:id", requireAuthentication, async (req, res) => {
         error: "Unable to update data for this course"
       });
     }
-
   } else if (req.role == "instructor") {
     try {
       const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
       if (typeof instructorId !== 'undefined') {
         if (req.user == instructorId.instructorId) {
-          const success = await updateCourseById(parseInt(req.params.id));
-          if (success) {
-            res.status(200).send()
+          if (validateAgainstSchema(req.body, CourseSchema)) {
+            const success = await updateCourseById(parseInt(req.params.id), req.body);
+            if (success) {
+              res.status(200).send()
+            } else {
+              res.status(500).send({
+              error: "Could not update course info"
+              });
+            } 
           } else {
-            res.status(400).send({
-              error: "Th request body was invalid for updating course info"
+            res.status(403).send({
+              error: "Invalid request body"
             });
-          } 
+          }
         } else {
           res.status(403).send({
             error: "Unauthorized to update course info"

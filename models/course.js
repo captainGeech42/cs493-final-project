@@ -32,8 +32,13 @@ exports.getCourseById = async function(id) {
   return course;
 }
 
-exports.updateCourseById = async function(id) {
-  //TO DO
+exports.updateCourseById = async function(id, course) {
+  const validCourse = extractValidFields(course, CourseSchema);
+  const [result] = await mysqlPool.query(
+    "UPDATE 'courses' SET ? WHERE id = ?",
+    [ validCourse, id ]
+  );
+  return result.affectedRows > 0;
 };
 
 exports.deleteCourseById = async function(id) {
