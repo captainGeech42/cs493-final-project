@@ -12,6 +12,30 @@ const CourseSchema = {
 };
 exports.CourseSchema = CourseSchema;
 
+exports.createCourse = async function(course) {
+  const courseToInsert = extractValidFields(course, CourseSchema);
+  const [result] = await mysqlPool.query(
+    "INSERT INTO 'courses' SET ?",
+    [courseToInsert]
+  );
+  return result.insertId;
+}
+
+exports.getCourseById = async function(id) {
+  const [ result ] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM 'courses' WHERE 'id' = ?",
+    [ id ]
+  );
+
+  const course = result[0];
+  if (!course) return null;
+  return course;
+}
+
+exports.updateCourseById = async function(id) {
+  //TO DO
+};
+
 exports.deleteCourseById = async function(id) {
   const [ result ] = await mysqlPool.query(
       "DELETE  FROM `courses` WHERE `id` = ?",

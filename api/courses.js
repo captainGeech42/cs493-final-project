@@ -2,6 +2,9 @@
 const bcrypt = require("bcryptjs");
 
 const { CourseSchema,
+      createCourse,
+      getCourseById,
+      updatecourseById,
       deleteCourseById,
       getStudentsByCourseId,
       getStudentsIdByCourseId,
@@ -20,18 +23,99 @@ router.get("/", async (req, res) => {
 });
 
 // Create a new course
-router.post("/", async (req, res) => {
-
+router.post("/", requireAuthentication, async (req, res) => {
+  if (req.role == "admin") {
+    try {
+      if (validateAgainstSchema(req.body, CourseSchema)) {
+        const id = await createCourse(req.body);
+        res.status(201).send({
+          id: id
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(400).send({
+        error: "Invalid request body"
+      });
+    }
+  } else {
+    res.status(403).send({
+      error: "Unauthorized to create a course"
+    });
+  }
 });
 
 // Fetch data about a specific Course
 router.get("/:id", async (req, res, next) => {
-
+  try {
+    const course = await getCourseById(parseInt(req.params.id));
+    
+    if (course) {
+      res.status(200).send({ course: course })
+    } else {
+      next();
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({
+      error: "Could not find specified course"
+    });
+  }
 });
 
 // Update data for a specific Course
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", requireAuthentication, async (req, res) => {
+  if (req.role == "admin") {
+    try {
+      const success = await updateCourseById(parseInt(req.params.id));
+      if (success) {
+        res.status(200).send();
+      } else {
+        res.status(400).send({
+          error: "The request body was invalid for updating course info, or the course could not be found"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to update data for this course"
+      });
+    }
 
+  } else if (req.role == "instructor") {
+    try {
+      const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+      if (typeof instructorId !== 'undefined') {
+        if (req.user == instructorId.instructorId) {
+          const success = await updateCourseById(parseInt(req.params.id));
+          if (success) {
+            res.status(200).send()
+          } else {
+            res.status(400).send({
+              error: "Th request body was invalid for updating course info"
+            });
+          } 
+        } else {
+          res.status(403).send({
+            error: "Unauthorized to update course info"
+          });
+        }
+      } else {
+        res.status(404).send({
+          error: "The course could not be found or there is no associated instructor with it"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to update data for this course"
+      });
+    }
+  } else {
+    res.status(403).send({
+      error: "Unauthorized to update data on this course"
+    });
+  }
 });
 
 // Remove a specific Course from the database
