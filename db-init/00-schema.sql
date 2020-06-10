@@ -37,7 +37,7 @@ CREATE TABLE submissions
   assignmentId INT NOT NULL,
   studentId INT NOT NULL,
   submittedTime varchar(255) NOT NULL,
-  file varchar(255) NOT NULL, -- this will need to be a BLOB or something
+  file BLOB NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (studentId) REFERENCES users(id),
   FOREIGN KEY (assignmentId) REFERENCES assignments(id) ON DELETE CASCADE

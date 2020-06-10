@@ -1,8 +1,37 @@
 // Routes for /assignments
 
 const router = require("express").Router();
-const {insertNewAssignment, AssignmentSchema, GetAssignementbyId, replaceAssignmentById,deleteAssignmentById} = require('../models/assignment');
+const {insertNewAssignment, AssignmentSchema, GetAssignementbyId, replaceAssignmentById,deleteAssignmentById, uploadSubmissionById, SubmissionSchema} = require('../models/assignment');
 const { validateAgainstSchema } = require('../lib/validation');
+const multer = require('multer');
+const crypto = require('crypto');
+const fs = require('fs');
+
+const imageTypes = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/pdf': 'pdf',
+  'image/doc': 'doc'
+};
+
+const upload = multer({
+  // dest: `${__dirname}/uploads`
+  storage: multer.diskStorage({
+    destination: `${__dirname}/uploads`,
+    filename: (req, file, callback) => {
+      const filename = crypto.pseudoRandomBytes(16).toString('hex');
+      const extension = imageTypes[file.mimetype];
+      callback(null, `${filename}.${extension}`);
+    }
+  }),
+  fileFilter: (req, file, callback) => {
+    callback(null, !!imageTypes[file.mimetype]);
+  }
+});
+
+
+
+
 // Create a new Assignment
 router.post("/", async (req, res, next) => {
   console.log("  -- req.body:", req.body);
@@ -95,8 +124,20 @@ router.get("/:id/submissions", async (req, res, next) => {
 });
 
 // Create a new Submission for an Assignment
-router.post("/:id/submissions", async (req, res, next) => {
-
+router.post("/:id/submissions", upload.single('file'), async (req, res) => {
+  console.log(req.body);
+  console.log(req.file.path);
+   try {
+   const id = await uploadSubmissionById(req.body, req.params.id, req.file);
+     res.status(201).send({
+       id: id
+     });
+   } catch (err) {
+      console.error(" -- error:", err);
+      res.status(500).send({
+        error: "Error inserting assignment into DB.  Try again later."
+      });
+    }
 });
 
 module.exports = router;

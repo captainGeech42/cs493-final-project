@@ -9,7 +9,12 @@ exports.AssignmentSchema = {
     points: { required: true },
     due: { required: true },
 };
-
+exports.SubmissionSchema ={
+  //assignmentId: { required: true},
+  studentId: { required: true},
+  submittedTime : { required : true},
+  AssignmentId: { required : true},
+};
 
 exports.insertNewAssignment = async function (assignment){
   const validatedAssignment = extractValidFields(
@@ -45,4 +50,19 @@ exports.deleteAssignmentById = async function(id){
     [ id ]
   );
   return result.affectedRows > 0;
+}
+
+exports.uploadSubmissionById = async function (submission, id, file){
+  const validatedAssignment = extractValidFields(
+    submission,
+   exports.SubmissionSchema
+  );
+  validatedAssignment.file = file;
+  validatedAssignment.assignmentId = id;
+  const [results] = await mysqlPool.query(
+    "INSERT INTO submissions SET ?",
+    validatedAssignment
+  );
+  return results.insertId;
+
 }
