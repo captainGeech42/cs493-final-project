@@ -57,12 +57,22 @@ exports.uploadSubmissionById = async function (submission, id, file){
     submission,
    exports.SubmissionSchema
   );
-  validatedAssignment.file = file;
+  validatedAssignment.fileDownload = file.path;
   validatedAssignment.assignmentId = id;
   const [results] = await mysqlPool.query(
     "INSERT INTO submissions SET ?",
     validatedAssignment
   );
   return results.insertId;
+
+}
+
+exports.getSubmissions = async function (id){
+  const [results] = await mysqlPool.query(
+    'SELECT * FROM submissions WHERE assignmentId = ?',
+    [id]
+  );
+  return results;
+
 
 }

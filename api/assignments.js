@@ -1,12 +1,12 @@
 // Routes for /assignments
 
 const router = require("express").Router();
-const {insertNewAssignment, AssignmentSchema, GetAssignementbyId, replaceAssignmentById,deleteAssignmentById, uploadSubmissionById, SubmissionSchema} = require('../models/assignment');
+const {insertNewAssignment, AssignmentSchema, GetAssignementbyId, replaceAssignmentById,deleteAssignmentById, uploadSubmissionById, SubmissionSchema, getSubmissions} = require('../models/assignment');
 const { validateAgainstSchema } = require('../lib/validation');
 const multer = require('multer');
 const crypto = require('crypto');
 const fs = require('fs');
-
+const {requireAuthentication} = require('../lib/auth');
 const imageTypes = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -120,13 +120,42 @@ router.delete("/:id", async (req, res, next) => {
 
 // Fetch the list of all Submissions for an Assignment
 router.get("/:id/submissions", async (req, res, next) => {
+  const id = await getSubmissions(req.params.id);
 
+  var page = parseInt(req.query.page) || 1;
+	var numPerPage = 1;
+	var lastPage = Math.ceil(id.length/ numPerPage);
+	page = page < 1 ? 1 : page;
+	page = page > lastPage ? lastPage : page;
+	var start = (page - 1) * numPerPage;
+	var end = start + numPerPage;
+	var pagesub = id.slice(start, end);
+	var links = {};
+	if (page < lastPage) {
+		links.nextPage = '/submissions?page=' + (page + 1);
+		links.lastPage = '/submissions?page=' + lastPage;
+	}
+	if (page > 1) {
+		links.prevPage = '/submissions?page=' + (page - 1);
+		links.firstPage = '/submissions?page=1';
+	}
+	res.status(200).json({
+	pageNumber: page,
+	totalPages: lastPage,
+	pageSize: numPerPage,
+	totalCount: id.length,
+	submissionData: pagesub,
+	links: links
+});
+
+
+  //res.status(200).send({
+  //  id: id
+  //});
 });
 
 // Create a new Submission for an Assignment
-router.post("/:id/submissions", upload.single('file'), async (req, res) => {
-  console.log(req.body);
-  console.log(req.file.path);
+router.post("/:id/submissions", upload.single('file'), requireAuthentication, async (req, res) => {
    try {
    const id = await uploadSubmissionById(req.body, req.params.id, req.file);
      res.status(201).send({
