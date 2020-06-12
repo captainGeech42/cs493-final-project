@@ -3,8 +3,9 @@ const bcrypt = require("bcryptjs");
 
 const { CourseSchema,
       createCourse,
+      getAllCourses,
       getCourseById,
-      updatecourseById,
+      updateCourseById,
       deleteCourseById,
       getStudentsByCourseId,
       getStudentsIdByCourseId,
@@ -19,7 +20,55 @@ const router = require("express").Router();
 
 // Fetch the list of all Courses
 router.get("/", async (req, res) => {
-
+  //setting all query params
+  var page = 1;
+  var subject = '';
+  var num = '';
+  var term = '';
+  if(req.query.page) {
+    page = parseInt(req.query.page);
+  }
+  if(req.query.subject) {
+    subject = req.query.subject;
+  }
+  if(req.query.number) {
+    num = req.query.number;
+  }
+  if(req.query.term) {
+    term = req.query.term;
+  }
+  //query now that we have all the params needed
+  try {
+    const courses = await getAllCourses(subject, num, term);
+    var numPerPage = 5;
+    var lastPage = Math.ceil(courses.length / numPerPage);
+    page = page < 1 ? 1 : page;
+    page = page > lastPage ? lastPage : page;
+    var start = (page - 1) * numPerPage;
+    var end = start + numPerPage;
+    var pagecourse = courses.slice(start, end);
+    var links = {};
+    if (page < lastPage) {
+      links.nextPage = '/submissions?page=' + (page + 1);
+      links.lastPage = '/submissions?page=' + lastPage;
+    }
+    if (page > 1) {
+      links.prevPage = '/submissions?page=' + (page - 1);
+      links.firstPage = '/submissions?page=1';
+    }
+    res.status(200).json({
+      pageNumber: page,
+      totalPages: lastPage,
+      pageSize: numPerPage,
+      totalCount: courses.length,
+      courses: pagecourse,
+      links: links
+    });
+  } catch (err) {
+    res.status(500).send({
+      error: "Error fetching course list"
+    });
+  }
 });
 
 // Create a new course

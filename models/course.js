@@ -21,6 +21,14 @@ exports.createCourse = async function(course) {
   return result.insertId;
 }
 
+exports.getAllCourses = async function(subject, num, term) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM 'courses' WHERE (? IS NULL OR subject = ?) AND (? IS NULL OR number = ?) AND (? IS NULL OR term = ?)",
+    [ subject, subject, num, num, term, term ]
+  );
+  return results;
+}
+
 exports.getCourseById = async function(id) {
   const [ result ] = await mysqlPool.query(
     "SELECT id, subject, number, title, term, instructorId FROM 'courses' WHERE 'id' = ?",
