@@ -3,6 +3,17 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs");
 
 const { CourseSchema,
+      createCourse,
+      getAllCourses000,
+      getAllCourses001,
+      getAllCourses010,
+      getAllCourses100,
+      getAllCourses101,
+      getAllCourses110,
+      getAllCourses011,
+      getAllCourses111,
+      getCourseById,
+      updateCourseById,
       deleteCourseById,
       getStudentsByCourseId,
       getStudentsIdByCourseId,
@@ -17,22 +28,350 @@ const router = require("express").Router();
 
 // Fetch the list of all Courses
 router.get("/", async (req, res) => {
-
+  //setting all query params
+  var page = 1;
+  var subject = '';
+  var num = '';
+  var term = '';
+  if(req.query.page) {
+    page = parseInt(req.query.page);
+  }
+  if(req.query.subject) {
+    subject = req.query.subject;
+  }
+  if(req.query.number) {
+    num = parseInt(req.query.number);
+  }
+  if(req.query.term) {
+    term = req.query.term;
+  }
+  //query now that we have all the params needed
+  //NOTE: I'm sure there is a better way to do this but I could not figure it out
+  //Hence, bruteforcing 8 different query functions
+  //const values must be instantiated when declared and the try-catch would get an error...
+  //...when referencing the const courses, which is why the pagination code is duplicated inside every if-else clause
+  //Also, pagination could not be placed into a separate function because it must return multiple values and javascript...
+  //...cannot return multiple values from a function except from when returning a list/array
+  try {
+    if (subject == '' && num == '' && term == '') {
+      const courses = await getAllCourses000();
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (subject == '' && num == '') {
+      const courses = await getAllCourses001(term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (subject == '' && term == '') {
+      const courses = await getAllCourses010(num);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (num == '' && term == '') {
+      const courses = await getAllCourses100(subject);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (num == '') {
+      const courses = await getAllCourses101(subject, term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (term == '') {
+      const courses = await getAllCourses110(subject, num);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (subject == '') {
+      const courses = await getAllCourses011(num, term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else {
+      const courses = await getAllCourses111(subject, num, term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } 
+  } catch (err) {
+    res.status(500).send({
+      error: "Error fetching course list"
+    });
+  }
 });
 
 // Create a new course
-router.post("/", async (req, res) => {
-
+router.post("/", requireAuthentication, async (req, res) => {
+  if (req.role == "admin") {
+    try {
+      if (validateAgainstSchema(req.body, CourseSchema)) {
+        const id = await createCourse(req.body);
+        res.status(201).send({
+          id: id
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(400).send({
+        error: "Invalid request body"
+      });
+    }
+  } else {
+    res.status(403).send({
+      error: "Unauthorized to create a course"
+    });
+  }
 });
 
 // Fetch data about a specific Course
 router.get("/:id", async (req, res, next) => {
-
+  try {
+    const course = await getCourseById(parseInt(req.params.id));
+    
+    if (course) {
+      res.status(200).send({ course: course })
+    } else {
+      next();
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({
+      error: "Could not find specified course"
+    });
+  }
 });
 
 // Update data for a specific Course
-router.patch("/:id", async (req, res, next) => {
-
+router.patch("/:id", requireAuthentication, async (req, res, next) => {
+  if (req.role == "admin") {
+    try {
+      if (validateAgainstSchema(req.body, CourseSchema)) {
+        const success = await updateCourseById(parseInt(req.params.id), req.body);
+        if (success) {
+          res.status(200).send();
+        } else {
+          next();
+        }        
+      } else {
+      res.status(403).send({
+        error: "Invalid request body"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to update data for this course"
+      });
+    }
+  } else if (req.role == "instructor") {
+    try {
+      const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+      if (typeof instructorId !== 'undefined') {
+        if (req.user == instructorId.instructorId) {
+          if (validateAgainstSchema(req.body, CourseSchema)) {
+            const success = await updateCourseById(parseInt(req.params.id), req.body);
+            if (success) {
+              res.status(200).send()
+            } else {
+              res.status(500).send({
+              error: "Could not update course info"
+              });
+            } 
+          } else {
+            res.status(403).send({
+              error: "Invalid request body"
+            });
+          }
+        } else {
+          res.status(403).send({
+            error: "Unauthorized to update course info"
+          });
+        }
+      } else {
+        res.status(404).send({
+          error: "The course could not be found or there is no associated instructor with it"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({
+        error: "Unable to update data for this course"
+      });
+    }
+  } else {
+    res.status(403).send({
+      error: "Unauthorized to update data on this course"
+    });
+  }
 });
 
 // Remove a specific Course from the database
