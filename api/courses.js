@@ -1,5 +1,6 @@
 // Routes for /courses
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
 
 const { CourseSchema,
       deleteCourseById,
@@ -65,7 +66,7 @@ router.get("/:id/students", requireAuthentication, async (req, res, next) => {
   if (req.role == "admin"){
     try {
       const success = await getStudentsIdByCourseId(parseInt(req.params.id));
-      if (success) {
+      if (success[0]) {
         res.status(200).send({
           students: success
         });
@@ -86,7 +87,7 @@ router.get("/:id/students", requireAuthentication, async (req, res, next) => {
       if (typeof instructorId !== 'undefined') {
         if (req.user == instructorId.instructorId) {
           const success = await getStudentsIdByCourseId(parseInt(req.params.id));
-          if (success) {
+          if (success[0]) {
             res.status(200).send({
               students: success
             });
@@ -122,63 +123,69 @@ router.get("/:id/students", requireAuthentication, async (req, res, next) => {
 router.post("/:id/students", requireAuthentication, async (req, res, next) => {
   const add = req.body.add;
   const remove = req.body.remove;
-  console.log(req.role);
-  if (req.role == "admin"){
-    try {
-      const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
-      const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
-      console.log(insertSuccess, deleteSuccess);
-      if ( insertSuccess && deleteSuccess) {
-        res.status(200).send({
-          success: "Successfule Enrollment/Unenrollment"
-        });
-      } else {
-        res.status(404).send({
-          error: "Course not found"
+  if (req.body && req.body.add && req.body.remove) {
+
+    if (req.role == "admin"){
+      try {
+        const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
+        const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
+        console.log(insertSuccess, deleteSuccess);
+        if ( insertSuccess && deleteSuccess) {
+          res.status(200).send({
+            success: "Successfule Enrollment/Unenrollment"
+          });
+        } else {
+          res.status(404).send({
+            error: "Course not found"
+          });
+        }
+      } catch (err) {
+        console.log(err);
+        res.status(500).send({
+          error: "Unable to add/delete students for this course"
         });
       }
-    } catch (err) {
-      console.log(err);
-      res.status(500).send({
-        error: "Unable to add/delete students for this course"
-      });
-    }
-  } else if (req.role == "instructor") {
-    try {
-      const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
-      if (typeof instructorId !== 'undefined') {
-        if (req.user == instructorId.instructorId) {
-          const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
-          const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
-          console.log(insertSuccess, deleteSuccess);
-          if ( insertSuccess && deleteSuccess) {
-            res.status(200).send({
-              success: "Successfule Enrollment/Unenrollment"
-            });
+    } else if (req.role == "instructor") {
+      try {
+        const instructorId = await getInstructorIdByCourseId(parseInt(req.params.id));
+        if (typeof instructorId !== 'undefined') {
+          if (req.user == instructorId.instructorId) {
+            const deleteSuccess = await updateUnenrollmentById(parseInt(req.params.id), remove);
+            const insertSuccess = await updateEnrollmentById(parseInt(req.params.id), add);
+            console.log(insertSuccess, deleteSuccess);
+            if ( insertSuccess && deleteSuccess) {
+              res.status(200).send({
+                success: "Successfule Enrollment/Unenrollment"
+              });
+            } else {
+              res.status(404).send({
+                error: "Course not found"
+              });
+            }
           } else {
-            res.status(404).send({
-              error: "Course not found"
+            res.status(403).send({
+              error: "Unauthorized to update list for this course"
             });
           }
         } else {
-          res.status(403).send({
-            error: "Unauthorized to fetch list for this course"
+          res.status(404).send({
+            error: "Course not found"
           });
         }
-      } else {
-        res.status(404).send({
-          error: "Course not found"
+      } catch (err) {
+        console.log(err);
+        res.status(500).send({
+          error: "Unable to update list of students for this course"
         });
       }
-    } catch (err) {
-      console.log(err);
-      res.status(500).send({
-        error: "Unable to fetch list of students for this course"
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to update list for this course"
       });
     }
   } else {
-    res.status(403).send({
-      error: "Unauthorized to fetch list for this course"
+    res.status(400).send({
+      error: "invalid/missing fields"
     });
   }
 });
@@ -188,16 +195,23 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
   if (req.role == "admin"){
     try {
       const ids = await getStudentsIdByCourseId(parseInt(req.params.id));
-      var csvData = "id, name, email \r\n";
-      var i;
-      for (i = 0; i < ids.length; i++) {
-        const student = await getStudentsByCourseId(ids[i].studentId);
-        csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}\r\n`);
-      }
-      console.log(csvData);
-      if (csvData) {
-        res.setHeader('Content-Type', 'text/csv');
-        res.status(200).send(csvData);
+
+      if (ids[0]) {
+        var csvData = "id, name, email \r\n";
+        var i;
+        for (i = 0; i < ids.length; i++) {
+          const student = await getStudentsByCourseId(ids[i].studentId);
+          csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}\r\n`);
+        }
+        fs.writeFile(`${__dirname}/roster.csv`, csvData, 'utf8', function (err,data) {
+          if (err) {
+            console.log('Some error occured - file either not saved or corrupted file saved.');
+          } else{
+            console.log('It\'s saved!');
+            res.setHeader('Content-Type', 'text/csv');
+            res.status(200).sendFile(`${__dirname}/roster.csv`)
+          }
+        });
       } else {
         res.status(404).send({
           error: "Course not found"
@@ -215,16 +229,23 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
       if (typeof instructorId !== 'undefined') {
         if (req.user == instructorId.instructorId) {
           const ids = await getStudentsIdByCourseId(parseInt(req.params.id));
-          var csvData = "id, name, email \r\n";
-          var i;
-          for (i = 0; i < ids.length; i++) {
-            const student = await getStudentsByCourseId(ids[i].studentId);
-            csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}\r\n`);
-          }
-          console.log(csvData);
-          if (csvData) {
-            res.setHeader('Content-Type', 'text/csv');
-            res.status(200).send(csvData);
+
+          if (ids[0]) {
+            var csvData = "id, name, email \r\n";
+            var i;
+            for (i = 0; i < ids.length; i++) {
+              const student = await getStudentsByCourseId(ids[i].studentId);
+              csvData = csvData.concat(`${student.id}, "${student.name}", ${student.email}\r\n`);
+            }
+            fs.writeFile(`${__dirname}/roster.csv`, csvData, 'utf8', function (err,data) {
+              if (err) {
+                console.log('Some error occured - file either not saved or corrupted file saved.');
+              } else{
+                console.log('It\'s saved!');
+                res.setHeader('Content-Type', 'text/csv');
+                res.status(200).sendFile(`${__dirname}/roster.csv`)
+              }
+            });
           } else {
             res.status(404).send({
               error: "Course not found"
@@ -232,7 +253,7 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
           }
       } else {
         res.status(404).send({
-          error: "Course not found"
+          error: "Not authorized to fetch csv list"
         });
       }
     } else {
@@ -243,7 +264,7 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
   } catch (err) {
     console.log(err);
     res.status(500).send({
-      error: "Unable to fetch list of students for this course"
+      error: "Unable to fetch list"
     });
   }
   } else {
@@ -257,20 +278,20 @@ router.get("/:id/roster", requireAuthentication, async (req, res, next) => {
 router.get("/:id/assignments", async (req, res, next) => {
   try {
     const ids = await getAssignmentsByCourseId(parseInt(req.params.id));
-    if (ids) {
+    if (ids[0]) {
       res.status(200).send({
         assignments: ids
       });
     }
     else {
       res.status(404).send({
-        error: "Course not found"
+        error: "Assignments not found"
       });
     }
   } catch (err) {
     console.log(err);
-    res.status(404).send({
-      error: "Course not found"
+    res.status(500).send({
+      error: "Unable to fetch assignments"
     });
   }
 });
