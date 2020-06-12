@@ -57,7 +57,7 @@ exports.uploadSubmissionById = async function (submission, id, file){
     submission,
    exports.SubmissionSchema
   );
-  validatedAssignment.fileDownload = file.path;
+  validatedAssignment.fileDownload = `/submissions/${id}/${file.filename}`;
   validatedAssignment.assignmentId = id;
   const [results] = await mysqlPool.query(
     "INSERT INTO submissions SET ?",
