@@ -4,6 +4,7 @@ const router = require("express").Router();
 const {insertNewAssignment, AssignmentSchema, GetAssignementbyId, replaceAssignmentById,deleteAssignmentById, uploadSubmissionById, SubmissionSchema, getSubmissions, GetAssignements} = require('../models/assignment');
 const { validateAgainstSchema } = require('../lib/validation');
 const multer = require('multer');
+//const {}
 const crypto = require('crypto');
 const fs = require('fs');
 const {requireAuthentication} = require('../lib/auth');
@@ -33,7 +34,20 @@ const upload = multer({
 
 
 // Create a new Assignment
-router.post("/", async (req, res, next) => {
+router.post("/", requireAuthentication, async (req, res, next) => {
+  var str1 = 'admin';
+  var str2 = 'instructor';
+  var str3 = req.role
+
+  if(str1 == str3|| str2 == str3){
+    console.log("sucess auth");
+  }
+  else{
+    res.status(403).send({
+      err: 'not an admin or instructor'
+    });
+  }
+  console.log(req.role);
   console.log("  -- req.body:", req.body);
   if (validateAgainstSchema(req.body, AssignmentSchema)) {
    try {
@@ -56,6 +70,19 @@ router.post("/", async (req, res, next) => {
 
 //get all assignments
 router.get("/", async (req, res, next) => {
+  var str1 = 'admin';
+  var str2 = 'instructor';
+  var str3 = req.role
+
+  if(str1 == str3|| str2 == str3){
+    console.log("sucess auth");
+  }
+  else{
+    res.status(403).send({
+      err: 'not an admin or instructor'
+    });
+  }
+
   try {
     const assignment = await GetAssignements();
     if (assignment) {
@@ -93,6 +120,18 @@ router.get("/:id", async (req, res, next) => {
 
 // Update data for a specific Assignment
 router.patch("/:id", async (req, res, next) => {
+  var str1 = 'admin';
+  var str2 = 'instructor';
+  var str3 = req.role
+
+  if(str1 == str3|| str2 == str3){
+    console.log("sucess auth");
+  }
+  else{
+    res.status(403).send({
+      err: 'not an admin or instructor'
+    });
+  }
   if (validateAgainstSchema(req.body,AssignmentSchema)) {
     try {
       const id = parseInt(req.params.id)
@@ -121,6 +160,18 @@ router.patch("/:id", async (req, res, next) => {
 
 // Remove a specific Assignment from the database
 router.delete("/:id", async (req, res, next) => {
+  var str1 = 'admin';
+  var str2 = 'instructor';
+  var str3 = req.role
+
+  if(str1 == str3|| str2 == str3){
+    console.log("sucess auth");
+  }
+  else{
+    res.status(403).send({
+      err: 'not an admin or instructor'
+    });
+  }
   try {
     const deleteSuccessful = await deleteAssignmentById(parseInt(req.params.id));
     if (deleteSuccessful) {
@@ -138,6 +189,18 @@ router.delete("/:id", async (req, res, next) => {
 
 // Fetch the list of all Submissions for an Assignment
 router.get("/:id/submissions", async (req, res, next) => {
+  //var str1 = 'admin';
+  //var str2 = 'instructor';
+//  var str3 = req.body.role
+
+//    console.log("sucess auth");
+  //}
+//  else{
+///    res.status(403).send({
+//      err: 'not an admin or instructor'
+//    });
+//  }
+
   const id = await getSubmissions(req.params.id);
 
   var page = parseInt(req.query.page) || 1;
@@ -174,6 +237,19 @@ router.get("/:id/submissions", async (req, res, next) => {
 
 // Create a new Submission for an Assignment
 router.post("/:id/submissions", upload.single('file'), requireAuthentication, async (req, res) => {
+  var str2 = 'student';
+  var str3 = req.role
+
+  if(str2 == str3){
+    console.log("sucess auth");
+  }
+  else{
+    res.status(403).send({
+      err: 'not a student'
+    });
+  }
+
+
    try {
    const id = await uploadSubmissionById(req.body, req.params.id, req.file);
      res.status(201).send({
