@@ -175,3 +175,19 @@ exports.getAssignmentsByCourseId = async function(id) {
   );
   return results;
 }
+
+exports.getCoursesForStudentById = async function(id) {
+  const [results] = await mysqlPool.query(
+    "SELECT courseId FROM student_courses WHERE studentId = ?",
+    [id]
+  );
+  return results;
+}
+
+exports.getCoursesForInstructorById = async function(id) {
+  const [results] = await mysqlPool.query(
+    "SELECT id FROM courses WHERE instructorId = ?",
+    [id]
+  );
+  return results;
+}

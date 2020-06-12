@@ -4,6 +4,7 @@ const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 
 const { UserSchema, UserLoginSchema, insertNewUser, getUserByEmail, getUserByID } = require("../models/user");
+const { getCoursesForStudentById, getCoursesForInstructorById } = require("../models/course");
 
 const { validateAgainstSchema } = require("../lib/validation");
 const { generateAuthToken, requireAuthentication, parseAuthToken } = require("../lib/auth");
@@ -101,10 +102,20 @@ router.get("/:id", requireAuthentication, async (req, res, next) => {
 
         const user = await getUserByID(req.params.id, false);
 
-        // TODO: get courses for instructor and student users
+        let resp = { user: user };
+
+        if (req.role == "student") {
+            courses = await getCoursesForStudentById(req.params.id);
+            resp["courses"] = courses;
+        }
+        if (req.role == "instructor") {
+            courses = await getCoursesForInstructorById(req.params.id);
+            resp["courses"] = courses;
+        }
 
         if (user) {
-            res.status(200).send({ user: user });
+
+            res.status(200).send(resp);
         } else {
             next();
         }

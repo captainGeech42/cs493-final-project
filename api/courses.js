@@ -281,7 +281,7 @@ router.post("/", requireAuthentication, async (req, res) => {
       }
     } catch (err) {
       console.log(err);
-      res.status(400).send({
+      res.status(500).send({
         error: "Invalid request body"
       });
     }
@@ -304,7 +304,7 @@ router.get("/:id", async (req, res, next) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(404).send({
+    res.status(500).send({
       error: "Could not find specified course"
     });
   }
