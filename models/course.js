@@ -12,6 +12,98 @@ const CourseSchema = {
 };
 exports.CourseSchema = CourseSchema;
 
+exports.createCourse = async function(course) {
+  const courseToInsert = extractValidFields(course, CourseSchema);
+  const [result] = await mysqlPool.query(
+    "INSERT INTO courses SET ?",
+    [courseToInsert]
+  );
+  return result.insertId;
+}
+
+exports.getAllCourses000 = async function() {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses",
+  );
+  return results;
+}
+
+exports.getAllCourses001 = async function(term) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE term = ?",
+    [term]
+  );
+  return results;
+}
+
+exports.getAllCourses010 = async function(num) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE number = ?",
+    [num]
+  );
+  return results;
+}
+
+exports.getAllCourses100 = async function(subject) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE subject = ?",
+    [subject]
+  );
+  return results;
+}
+
+exports.getAllCourses101 = async function(subject, term) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE (subject = ?) AND (term = ?)",
+    [subject, term]
+  );
+  return results;
+}
+
+exports.getAllCourses110 = async function(subject, num) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE (subject = ?) AND (number = ?)",
+    [subject, num]
+  );
+  return results;
+}
+
+exports.getAllCourses011 = async function(num, term) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE (number = ?) AND (term = ?)",
+    [num, term]
+  );
+  return results;
+}
+
+exports.getAllCourses111 = async function(subject, num, term) {
+  const [results] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE (subject = ?) AND (number = ?) AND (term = ?)",
+    [subject, num, term]
+  );
+  return results;
+}
+
+exports.getCourseById = async function(id) {
+  const [ result ] = await mysqlPool.query(
+    "SELECT id, subject, number, title, term, instructorId FROM courses WHERE id = ?",
+    [ id ]
+  );
+
+  const course = result[0];
+  if (!course) return null;
+  return course;
+}
+
+exports.updateCourseById = async function(id, course) {
+  const validCourse = extractValidFields(course, CourseSchema);
+  const [result] = await mysqlPool.query(
+    "UPDATE courses SET ? WHERE id = ?",
+    [ validCourse, id ]
+  );
+  return result.affectedRows > 0;
+};
+
 exports.deleteCourseById = async function(id) {
   const [ result ] = await mysqlPool.query(
       "DELETE  FROM `courses` WHERE `id` = ?",
