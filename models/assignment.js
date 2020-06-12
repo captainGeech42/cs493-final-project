@@ -76,3 +76,11 @@ exports.getSubmissions = async function (id){
 
 
 }
+exports.GetAssignements = async function (){
+  const [results] = await mysqlPool.query(
+    'SELECT * FROM assignments'
+  );
+  return results;
+
+
+}

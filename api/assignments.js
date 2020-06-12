@@ -1,7 +1,7 @@
 // Routes for /assignments
 
 const router = require("express").Router();
-const {insertNewAssignment, AssignmentSchema, GetAssignementbyId, replaceAssignmentById,deleteAssignmentById, uploadSubmissionById, SubmissionSchema, getSubmissions} = require('../models/assignment');
+const {insertNewAssignment, AssignmentSchema, GetAssignementbyId, replaceAssignmentById,deleteAssignmentById, uploadSubmissionById, SubmissionSchema, getSubmissions, GetAssignements} = require('../models/assignment');
 const { validateAgainstSchema } = require('../lib/validation');
 const multer = require('multer');
 const crypto = require('crypto');
@@ -53,6 +53,24 @@ router.post("/", async (req, res, next) => {
     });
   }
 });
+
+//get all assignments
+router.get("/", async (req, res, next) => {
+  try {
+    const assignment = await GetAssignements();
+    if (assignment) {
+      res.status(200).send(assignment);
+    } else {
+      next();
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      error: "Unable to fetch assignment.  Please try again later."
+    });
+  }
+});
+
 
 
 // Fetch data about a specific Assignment
