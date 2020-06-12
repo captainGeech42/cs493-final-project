@@ -3,7 +3,14 @@ const bcrypt = require("bcryptjs");
 
 const { CourseSchema,
       createCourse,
-      getAllCourses,
+      getAllCourses000,
+      getAllCourses001,
+      getAllCourses010,
+      getAllCourses100,
+      getAllCourses101,
+      getAllCourses110,
+      getAllCourses011,
+      getAllCourses111,
       getCourseById,
       updateCourseById,
       deleteCourseById,
@@ -32,38 +39,228 @@ router.get("/", async (req, res) => {
     subject = req.query.subject;
   }
   if(req.query.number) {
-    num = req.query.number;
+    num = parseInt(req.query.number);
   }
   if(req.query.term) {
     term = req.query.term;
   }
   //query now that we have all the params needed
+  //NOTE: I'm sure there is a better way to do this but I could not figure it out
+  //Hence, bruteforcing 8 different query functions
+  //const values must be instantiated when declared and the try-catch would get an error...
+  //...when referencing the const courses, which is why the pagination code is duplicated inside every if-else clause
+  //Also, pagination could not be placed into a separate function because it must return multiple values and javascript...
+  //...cannot return multiple values from a function except from when returning a list/array
   try {
-    const courses = await getAllCourses(subject, num, term);
-    var numPerPage = 5;
-    var lastPage = Math.ceil(courses.length / numPerPage);
-    page = page < 1 ? 1 : page;
-    page = page > lastPage ? lastPage : page;
-    var start = (page - 1) * numPerPage;
-    var end = start + numPerPage;
-    var pagecourse = courses.slice(start, end);
-    var links = {};
-    if (page < lastPage) {
-      links.nextPage = '/submissions?page=' + (page + 1);
-      links.lastPage = '/submissions?page=' + lastPage;
-    }
-    if (page > 1) {
-      links.prevPage = '/submissions?page=' + (page - 1);
-      links.firstPage = '/submissions?page=1';
-    }
-    res.status(200).json({
-      pageNumber: page,
-      totalPages: lastPage,
-      pageSize: numPerPage,
-      totalCount: courses.length,
-      courses: pagecourse,
-      links: links
-    });
+    if (subject == '' && num == '' && term == '') {
+      const courses = await getAllCourses000();
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (subject == '' && num == '') {
+      const courses = await getAllCourses001(term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (subject == '' && term == '') {
+      const courses = await getAllCourses010(num);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (num == '' && term == '') {
+      const courses = await getAllCourses100(subject);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (num == '') {
+      const courses = await getAllCourses101(subject, term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (term == '') {
+      const courses = await getAllCourses110(subject, num);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else if (subject == '') {
+      const courses = await getAllCourses011(num, term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } else {
+      const courses = await getAllCourses111(subject, num, term);
+      var numPerPage = 5;
+      var lastPage = Math.ceil(courses.length / numPerPage);
+      page = page < 1 ? 1 : page;
+      page = page > lastPage ? lastPage : page;
+      var start = (page - 1) * numPerPage;
+      var end = start + numPerPage;
+      var pagecourse = courses.slice(start, end);
+      var links = {};
+      if (page < lastPage) {
+        links.nextPage = '/submissions?page=' + (page + 1);
+        links.lastPage = '/submissions?page=' + lastPage;
+      }
+      if (page > 1) {
+        links.prevPage = '/submissions?page=' + (page - 1);
+        links.firstPage = '/submissions?page=1';
+      }
+      res.status(200).json({
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: courses.length,
+        courses: pagecourse,
+        links: links
+      });
+    } 
   } catch (err) {
     res.status(500).send({
       error: "Error fetching course list"
