@@ -16,7 +16,6 @@ exports.deleteCourseById = async function(id) {
   const [ result ] = await mysqlPool.query(
       "DELETE  FROM `courses` WHERE `id` = ?",
       [ id ]
-      //'INSERT INTO courses (id, subject, number, title, term, instructorId) VALUES (2, "CS", 493, "test course", "fall", 2)'
   );
   return result.affectedRows > 0;
 }
