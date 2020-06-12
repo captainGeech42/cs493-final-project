@@ -6,3 +6,4 @@ INSERT INTO users (name, email, password, role) VALUES ('Test Student2', 'studen
 INSERT INTO users (name, email, password, role) VALUES ('Test Student3', 'student3@school.dev', '$2a$08$EXSZIX2YeU3ImA1oJ9yVs.TLz4fkLiX/7cwXNPtuuivGglAlwGD/G', 'student');
 INSERT INTO courses (id, subject, number, title, term, instructorId) VALUES (1, "CS", 493, "test course", "spring", 2);
 INSERT INTO student_courses (courseId, studentId) VALUES (1, 3), (1,4), (1,5);
+INSERT INTO assignments (courseId, title, points, due) VALUES (1, "Assignment 1", "100", "2020-06-14T17:00:00-07:00");
